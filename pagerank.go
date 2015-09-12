@@ -85,26 +85,28 @@ func printRank(nodes map[int]float64) {
 	}
 }
 
+// p: ノードから他のノードへの遷移確率
+//    リンクの重みがなければ、1 / 他のノードへのリンク数
+func p(link []int) float64 {
+	return 1 / float64(len(link))
+}
+
 /*
  * ## 更新手順
  *
  * 1. ノードを1つ取り出す
  * 2. 各ノードから他のノードへのリンクを元にpを算出する
- * 3. ノードを持つrankとpを掛け、他のノードに配分する
+ * 3. ノードを持つrankとpを掛け、他のノードにrankを配分する
  * 4. 他のノードに配分していないノードがあれば 1. に戻る
- *
- * p: ノードから他のノードへの遷移確率
- *    リンクの重みがなければ、1 / 他のノードへのリンク数
  *
  */
 func updateRank(nodes map[int]float64, links map[int][]int) map[int]float64 {
 	nextNodes := newNodes(nodes)
 	for id, rank := range nodes {
-		p := 1 / float64(len(links[id]))
-		sharerank := (p * rank)
+		shareRank := (p(links[id]) * rank)
 
 		for _, target_id := range links[id] {
-			nextNodes[target_id] += sharerank
+			nextNodes[target_id] += shareRank
 		}
 	}
 
