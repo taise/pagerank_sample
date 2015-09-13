@@ -5,15 +5,15 @@ import "fmt"
 /*
  * ## グラフの基礎知識
  *
- * ノード(node): ネットワークの頂点
- * リンク(link): ネットワークの頂点と頂点を結ぶ線
- * 有向グラフ(directed graph): リンクのつながりに方向があるグラフ
- * 	ex) Twitterのフォロー関係
- * 無向グラフ(undirected graph): リンクのつながりに方向がないグラフ
- * 	ex) Facebookの友人関係
- * グラフ構造の値: 各ノードとリンクは値を持つことができる
- * 	ex) 地点Aの人口
- * 	ex) 地点Aから地点Bまでの距離
+ * - ノード(node): ネットワークの頂点
+ * - リンク(link): ネットワークの頂点と頂点を結ぶ線
+ * - 有向グラフ(directed graph): リンクのつながりに方向があるグラフ
+ *     - ex) Twitterのフォロー関係
+ * - 無向グラフ(undirected graph): リンクのつながりに方向がないグラフ
+ *     - ex) Facebookの友人関係
+ * - グラフ構造の値: 各ノードとリンクは値を持つことができる
+ *     - ex) 地点Aの人口
+ *     - ex) 地点Aから地点Bまでの距離
  *
  *
  * ex) 3つのノードを持つ有向グラフ
@@ -22,12 +22,14 @@ import "fmt"
  * 1<----,       |
  * └─ -> 2 <--> 3
  *
- * nodes: {1, 2, 3}
- * links: { 1: {2}, 2: {1, 3}, 3: {1, 2}}
+ * - nodes: {1, 2, 3}
+ * - links: { 1: {2}, 2: {1, 3}, 3: {1, 2}}
  *
  */
 
 func main() {
+	// rankの初期値
+	const v = float64(1.0)
 
 	// 有向グラフのリンク
 	//   ex) map[int][]int {from_node_id: {to_node_ids}}
@@ -43,7 +45,7 @@ func main() {
 
 	// 有向グラフのノード
 	//	 ex) map[int]float64 {node_id: rank}
-	nodes := generateNodeFrom(links)
+	nodes := generateNodeFrom(links, v)
 
 	// 50 step以内にグラフのrankが収束するはず
 	for step := 1; step < 50; step++ {
@@ -52,8 +54,8 @@ func main() {
 	}
 }
 
-func generateNodeFrom(links map[int][]int) map[int]float64 {
-	const v = float64(1.0)
+// リンクからノードを生成する
+func generateNodeFrom(links map[int][]int, v float64) map[int]float64 {
 	nodes := map[int]float64{}
 
 	for from_id, to_ids := range links {
@@ -65,10 +67,10 @@ func generateNodeFrom(links map[int][]int) map[int]float64 {
 	return nodes
 }
 
-func newNodes(nodes map[int]float64) map[int]float64 {
+func copyNodeKey(nodes map[int]float64) map[int]float64 {
 	newnodes := map[int]float64{}
 	for k, _ := range nodes {
-		newnodes[k] = 0
+		newnodes[k] = float64(0)
 	}
 	return newnodes
 }
@@ -101,7 +103,7 @@ func p(link []int) float64 {
  *
  */
 func updateRank(nodes map[int]float64, links map[int][]int) map[int]float64 {
-	nextNodes := newNodes(nodes)
+	nextNodes := copyNodeKey(nodes)
 	for id, rank := range nodes {
 		shareRank := (p(links[id]) * rank)
 
