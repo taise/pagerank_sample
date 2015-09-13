@@ -60,16 +60,12 @@ func main() {
 	}
 	printLinks(links)
 
-	// 有向グラフのノード
+	// 有向グラフのノードとそのRank
 	//	 ex) map[int]float64 {nodeId: rank}
 	nodes := toNodes(links)
 
-	fmt.Println(AdjacencyList{})
-	matrix := toMatrix(links, nodes)
-	fmt.Println(matrix)
-
-	G := fixedAdjacencyList(links, nodes)
-	fmt.Println(G)
+	// 各ノードからノードへの遷移確率をもつ隣接行列G
+	G := meyersAdjacencyList(links, nodes)
 
 	// 50 step以内にグラフのrankが収束するはず
 	for step := 1; step < 50; step++ {
@@ -85,7 +81,7 @@ func Round(f float64) float64 {
 	return math.Floor(f*shift+.5) / shift
 }
 
-// リンクからノードに変換する
+// リンクからノードに変換
 func toNodes(links Links) Nodes {
 	const v = float64(1.0)
 	nodes := Nodes{}
@@ -114,7 +110,17 @@ func toMatrix(links Links, nodes Nodes) AdjacencyList {
 	return matrix
 }
 
-/* 遷移確率の隣接行列
+/*
+ * 遷移確率の隣接行列S
+ *   リンクがないノードjへの遷移確率は0とする
+ *   ai = {0: リンクあり, 1: リンクなし}
+ *
+ *   Niはノードiのリンク数
+ *   nはノード数
+ *
+ *   あるノードiからあるノードjへの遷移確率pij
+ *   pij = (1/Ni) + ai(1/n)
+ *
  * |  |1  |2  |3  |4  |5  |6  |
  * |:-|--:|--:|--:|--:|--:|--:|
  * |1 |  0|1/2|1/2|  0|  0|  0|
@@ -136,8 +142,16 @@ func probabilityAdjacencyList(links Links, nodes Nodes) AdjacencyList {
 	return matrix
 }
 
-/* damping factorを考慮した遷移確率の隣接行列
- *   d(damping factor): リンクがなくても一定確率で別ノードに遷移する確率
+/*
+ * Meyer's Random Surfer Model
+ *   damping factorを考慮した遷移確率
+ *   d(damping factor)は、リンクがなくても一定確率で別ノードに遷移する確率
+ *
+ *   nはノード数
+ *
+ *   あるノードiからノードjへの遷移確率pij
+ *   pij = d * Sij + (1 - d) * (1 / n)
+ *
  * 以下は d = 0.9の場合の隣接行列
  * |  |1    |2    |3    |4    |5    |6    |
  * |:-|----:|----:|----:|----:|----:|----:|
@@ -148,7 +162,7 @@ func probabilityAdjacencyList(links Links, nodes Nodes) AdjacencyList {
  * |5 | 1/60| 1/60| 1/60| 1/60| 1/60|55/60|
  * |6 | 1/60| 1/60| 1/60| 1/60|55/60| 1/60|
  */
-func fixedAdjacencyList(links Links, nodes Nodes) AdjacencyList {
+func meyersAdjacencyList(links Links, nodes Nodes) AdjacencyList {
 	const d = float64(0.85)
 
 	S := probabilityAdjacencyList(links, nodes)
@@ -172,18 +186,6 @@ func copyNodeKey(nodes Nodes) Nodes {
 	return newnodes
 }
 
-func printLinks(links Links) {
-	for k, links := range links {
-		fmt.Println("key: ", k, "links: ", links)
-	}
-}
-
-func printRank(nodes map[int]float64) {
-	for id, rank := range nodes {
-		fmt.Println("id: ", id, ",rank: ", rank)
-	}
-}
-
 // ノードからノードへ遷移確率pの分のrankをそれぞれ配分する
 func updateRank(nodes Nodes, G AdjacencyList) Nodes {
 	nextNodes := copyNodeKey(nodes)
@@ -195,4 +197,16 @@ func updateRank(nodes Nodes, G AdjacencyList) Nodes {
 	}
 
 	return nextNodes
+}
+
+func printLinks(links Links) {
+	for k, links := range links {
+		fmt.Println("key: ", k, "links: ", links)
+	}
+}
+
+func printRank(nodes map[int]float64) {
+	for id, rank := range nodes {
+		fmt.Println("id: ", id, ",rank: ", rank)
+	}
 }
