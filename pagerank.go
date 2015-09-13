@@ -205,7 +205,7 @@ func printLinks(links Links) {
 	}
 }
 
-func printRank(nodes map[int]float64) {
+func printRank(nodes Nodes) {
 	for id, rank := range nodes {
 		fmt.Println("id: ", id, ",rank: ", rank)
 	}
