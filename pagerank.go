@@ -27,6 +27,12 @@ import (
  *
  * - nodes: {1, 2, 3}
  * - links: { 1: {2}, 2: {1, 3}, 3: {1, 2}}
+ * - adjacency_list(matrix):
+ * |  |1  |2  |3  |
+ * |:-|--:|--:|--:|
+ * |1 |  0|  1|  0|
+ * |2 |1/2|  0|1/2|
+ * |3 |1/2|1/2|  0|
  *
  */
 
@@ -48,7 +54,7 @@ func main() {
 
 	// 有向グラフのノード
 	//	 ex) map[int]float64 {node_id: rank}
-	nodes := generateNodeFrom(links, v)
+	nodes := toNodes(links)
 
 	// 50 step以内にグラフのrankが収束するはず
 	for step := 1; step < 50; step++ {
@@ -63,8 +69,9 @@ func Round(f float64) float64 {
 	return math.Floor(f*shift+.5) / shift
 }
 
-// リンクからノードを生成する
-func generateNodeFrom(links map[int][]int, v float64) map[int]float64 {
+// リンクからノードに変換する
+func toNodes(links map[int][]int) map[int]float64 {
+	const v = 1.0
 	nodes := map[int]float64{}
 
 	for from_id, to_ids := range links {
