@@ -51,12 +51,12 @@ func main() {
 	// 有向グラフのリンク
 	//   ex) map[int][]int {fromNodeId: {toNodeIds}}
 	links := Links{
-		1: {2, 3, 4},
-		2: {1, 4, 5},
-		3: {1, 4},
-		4: {2, 3},
-		5: {2, 3, 6},
-		6: {1, 4, 7},
+		1: {2, 3},
+		2: {3},
+		3: {1, 4, 5},
+		4: {1, 2, 3, 4, 5, 6},
+		5: {6},
+		6: {5},
 	}
 	printLinks(links)
 
@@ -68,8 +68,8 @@ func main() {
 	matrix := toMatrix(links, nodes)
 	fmt.Println(matrix)
 
-	S := toMatrix(links, nodes)
-	fmt.Println(S)
+	G := fixedAdjacencyList(links, nodes)
+	fmt.Println(G)
 
 	// 50 step以内にグラフのrankが収束するはず
 	for step := 1; step < 50; step++ {
@@ -99,10 +99,7 @@ func toNodes(links Links) Nodes {
 }
 
 // リンク、ノードから隣接行列に変換する
-// 値は、damping factorを考慮した遷移確率p
 func toMatrix(links Links, nodes Nodes) AdjacencyList {
-	const d = float64(0.85)
-
 	matrix := AdjacencyList{}
 
 	// nodeIdの隣接行列を0で埋める
@@ -114,6 +111,56 @@ func toMatrix(links Links, nodes Nodes) AdjacencyList {
 		matrix[i] = tmpMap
 	}
 	return matrix
+}
+
+/* 遷移確率の隣接行列
+ * |  |1  |2  |3  |4  |5  |6  |
+ * |:-|--:|--:|--:|--:|--:|--:|
+ * |1 |  0|1/2|1/2|  0|  0|  0|
+ * |2 |  0|  0|  1|  0|  0|  0|
+ * |3 |1/3|  0|  0|1/3|1/3|  0|
+ * |4 |1/6|1/6|1/6|1/6|1/6|1/6|
+ * |5 |  0|  0|  0|  0|  0|  1|
+ * |6 |  0|  0|  0|  0|  1|  0|
+ */
+func probabilityAdjacencyList(links Links, nodes Nodes) AdjacencyList {
+	matrix := toMatrix(links, nodes)
+
+	for row, link := range links {
+		ni := float64(len(link))
+		for _, col := range link {
+			matrix[row][col] = 1.0 / ni
+		}
+	}
+	return matrix
+}
+
+/* damping factorを考慮した遷移確率の隣接行列
+ *   d(damping factor): リンクがなくても一定確率で別ノードに遷移する確率
+ * 以下は d = 0.9の場合の隣接行列
+ * |  |1    |2    |3    |4    |5    |6    |
+ * |:-|----:|----:|----:|----:|----:|----:|
+ * |1 | 1/60|28/60|28/60| 1/60| 1/60| 1/60|
+ * |2 | 1/60| 1/60|55/60| 1/60| 1/60| 1/60|
+ * |3 |19/60| 1/60| 1/60|19/60|19/60| 1/60|
+ * |4 |10/60|10/60|10/60|10/60|10/60|10/60|
+ * |5 | 1/60| 1/60| 1/60| 1/60| 1/60|55/60|
+ * |6 | 1/60| 1/60| 1/60| 1/60|55/60| 1/60|
+ */
+func fixedAdjacencyList(links Links, nodes Nodes) AdjacencyList {
+	const d = float64(0.85)
+
+	S := probabilityAdjacencyList(links, nodes)
+	G := toMatrix(links, nodes)
+	n := float64(len(G))
+
+	for i, cols := range S {
+		for j, _ := range cols {
+			s := S[i][j]
+			G[i][j] = d*(s) + (1.0-d)*(1.0/n)
+		}
+	}
+	return G
 }
 
 func copyNodeKey(nodes Nodes) Nodes {
