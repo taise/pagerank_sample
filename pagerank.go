@@ -74,7 +74,8 @@ func main() {
 	// 50 step以内にグラフのrankが収束するはず
 	for step := 1; step < 50; step++ {
 		fmt.Printf("\n===== step %v =====\n", step)
-		nodes = updateRank(nodes, links)
+		nodes = updateRank(nodes, G)
+		printRank(nodes)
 	}
 }
 
@@ -183,31 +184,15 @@ func printRank(nodes map[int]float64) {
 	}
 }
 
-// p: ノードから他のノードへの遷移確率
-//    リンクの重みがなければ、1 / 他のノードへのリンク数
-func p(link []int) float64 {
-	return 1 / float64(len(link))
-}
-
-/*
- * ## 更新手順
- *
- * 1. ノードを1つ取り出す
- * 2. 各ノードから他のノードへのリンクを元にpを算出する
- * 3. ノードを持つrankとpを掛け、他のノードにrankを配分する
- * 4. 他のノードに配分していないノードがあれば 1. に戻る
- *
- */
-func updateRank(nodes map[int]float64, links Links) map[int]float64 {
+// ノードからノードへ遷移確率pの分のrankをそれぞれ配分する
+func updateRank(nodes Nodes, G AdjacencyList) Nodes {
 	nextNodes := copyNodeKey(nodes)
-	for id, rank := range nodes {
-		shareRank := Round(p(links[id]) * rank)
 
-		for _, targetId := range links[id] {
-			nextNodes[targetId] += shareRank
+	for i, rank := range nodes {
+		for j, p := range G[i] {
+			nextNodes[j] += p * rank
 		}
 	}
 
-	printRank(nextNodes)
 	return nextNodes
 }
