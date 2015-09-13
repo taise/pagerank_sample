@@ -27,7 +27,7 @@ import (
  *
  * - nodes: {1, 2, 3}
  * - links: { 1: {2}, 2: {1, 3}, 3: {1, 2}}
- * - adjacency_list(matrix):
+ * - adjacencyList(matrix):
  * |  |1  |2  |3  |
  * |:-|--:|--:|--:|
  * |1 |  0|  1|  0|
@@ -41,7 +41,7 @@ func main() {
 	const v = float64(1.0)
 
 	// 有向グラフのリンク
-	//   ex) map[int][]int {from_node_id: {to_node_ids}}
+	//   ex) map[int][]int {fromNodeId: {toNodeIds}}
 	links := map[int][]int{
 		1: {2, 3, 4},
 		2: {1, 4, 5},
@@ -53,7 +53,7 @@ func main() {
 	printLinks(links)
 
 	// 有向グラフのノード
-	//	 ex) map[int]float64 {node_id: rank}
+	//	 ex) map[int]float64 {nodeId: rank}
 	nodes := toNodes(links)
 
 	// 50 step以内にグラフのrankが収束するはず
@@ -74,9 +74,9 @@ func toNodes(links map[int][]int) map[int]float64 {
 	const v = 1.0
 	nodes := map[int]float64{}
 
-	for from_id, to_ids := range links {
-		nodes[from_id] = v
-		for _, id := range to_ids {
+	for fromId, toIds := range links {
+		nodes[fromId] = v
+		for _, id := range toIds {
 			nodes[id] = v
 		}
 	}
@@ -123,8 +123,8 @@ func updateRank(nodes map[int]float64, links map[int][]int) map[int]float64 {
 	for id, rank := range nodes {
 		shareRank := Round(p(links[id]) * rank)
 
-		for _, target_id := range links[id] {
-			nextNodes[target_id] += shareRank
+		for _, targetId := range links[id] {
+			nextNodes[targetId] += shareRank
 		}
 	}
 
