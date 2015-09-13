@@ -53,13 +53,13 @@ func main() {
 }
 
 func generateNodeFrom(links map[int][]int) map[int]float64 {
-	const v = 1.0
+	const v = float64(1.0)
 	nodes := map[int]float64{}
 
 	for from_id, to_ids := range links {
-		nodes[from_id] = 1.0
+		nodes[from_id] = v
 		for _, id := range to_ids {
-			nodes[id] = 1.0
+			nodes[id] = v
 		}
 	}
 	return nodes
