@@ -28,6 +28,10 @@ import (
  * - nodes: {1, 2, 3}
  * - links: { 1: {2}, 2: {1, 3}, 3: {1, 2}}
  * - adjacencyList(matrix):
+ *  {1: {1: 0,   2: 1,   3: 0},
+ *   2: {1: 0.5, 2: 0,   3: 0.5}
+ *   3: {1: 0.5, 2: 0.5, 3: 0}}
+ *
  * |  |1  |2  |3  |
  * |:-|--:|--:|--:|
  * |1 |  0|  1|  0|
@@ -36,13 +40,17 @@ import (
  *
  */
 
+type Links map[int][]int
+type Nodes map[int]float64
+type AdjacencyList map[int]map[int]float64
+
 func main() {
 	// rankの初期値
 	const v = float64(1.0)
 
 	// 有向グラフのリンク
 	//   ex) map[int][]int {fromNodeId: {toNodeIds}}
-	links := map[int][]int{
+	links := Links{
 		1: {2, 3, 4},
 		2: {1, 4, 5},
 		3: {1, 4},
@@ -55,6 +63,13 @@ func main() {
 	// 有向グラフのノード
 	//	 ex) map[int]float64 {nodeId: rank}
 	nodes := toNodes(links)
+
+	fmt.Println(AdjacencyList{})
+	matrix := toMatrix(links, nodes)
+	fmt.Println(matrix)
+
+	S := toMatrix(links, nodes)
+	fmt.Println(S)
 
 	// 50 step以内にグラフのrankが収束するはず
 	for step := 1; step < 50; step++ {
@@ -70,9 +85,9 @@ func Round(f float64) float64 {
 }
 
 // リンクからノードに変換する
-func toNodes(links map[int][]int) map[int]float64 {
-	const v = 1.0
-	nodes := map[int]float64{}
+func toNodes(links Links) Nodes {
+	const v = float64(1.0)
+	nodes := Nodes{}
 
 	for fromId, toIds := range links {
 		nodes[fromId] = v
@@ -83,15 +98,33 @@ func toNodes(links map[int][]int) map[int]float64 {
 	return nodes
 }
 
-func copyNodeKey(nodes map[int]float64) map[int]float64 {
-	newnodes := map[int]float64{}
+// リンク、ノードから隣接行列に変換する
+// 値は、damping factorを考慮した遷移確率p
+func toMatrix(links Links, nodes Nodes) AdjacencyList {
+	const d = float64(0.85)
+
+	matrix := AdjacencyList{}
+
+	// nodeIdの隣接行列を0で埋める
+	for i, _ := range nodes {
+		tmpMap := map[int]float64{}
+		for j, _ := range nodes {
+			tmpMap[j] = 0
+		}
+		matrix[i] = tmpMap
+	}
+	return matrix
+}
+
+func copyNodeKey(nodes Nodes) Nodes {
+	newnodes := Nodes{}
 	for k, _ := range nodes {
 		newnodes[k] = float64(0)
 	}
 	return newnodes
 }
 
-func printLinks(links map[int][]int) {
+func printLinks(links Links) {
 	for k, links := range links {
 		fmt.Println("key: ", k, "links: ", links)
 	}
@@ -118,7 +151,7 @@ func p(link []int) float64 {
  * 4. 他のノードに配分していないノードがあれば 1. に戻る
  *
  */
-func updateRank(nodes map[int]float64, links map[int][]int) map[int]float64 {
+func updateRank(nodes map[int]float64, links Links) map[int]float64 {
 	nextNodes := copyNodeKey(nodes)
 	for id, rank := range nodes {
 		shareRank := Round(p(links[id]) * rank)
