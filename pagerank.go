@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 /*
  * ## グラフの基礎知識
@@ -54,6 +57,12 @@ func main() {
 	}
 }
 
+func Round(f float64) float64 {
+	const place = 15
+	shift := math.Pow(10, float64(place))
+	return math.Floor(f*shift+.5) / shift
+}
+
 // リンクからノードを生成する
 func generateNodeFrom(links map[int][]int, v float64) map[int]float64 {
 	nodes := map[int]float64{}
@@ -105,7 +114,7 @@ func p(link []int) float64 {
 func updateRank(nodes map[int]float64, links map[int][]int) map[int]float64 {
 	nextNodes := copyNodeKey(nodes)
 	for id, rank := range nodes {
-		shareRank := (p(links[id]) * rank)
+		shareRank := Round(p(links[id]) * rank)
 
 		for _, target_id := range links[id] {
 			nextNodes[target_id] += shareRank
