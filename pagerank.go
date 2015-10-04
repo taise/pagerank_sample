@@ -47,12 +47,12 @@ func main() {
 	// rankの初期値
 	const v = float64(1.0)
 
-	links := graph.GenerateLinks(100)
+	links := graph.GenerateLinks(20)
 	links.Print()
 
 	// 有向グラフのノードとそのRank
 	//	 ex) map[int]float64 {nodeId: rank}
-	nodes := toNodes(links)
+	nodes := links.ToNodes()
 
 	// 各ノードからノードへの遷移確率をもつ隣接行列G
 	G := meyersAdjacencyList(links, nodes)
@@ -69,20 +69,6 @@ func Round(f float64) float64 {
 	const place = 15
 	shift := math.Pow(10, float64(place))
 	return math.Floor(f*shift+.5) / shift
-}
-
-// リンクからノードに変換
-func toNodes(links graph.Links) graph.Nodes {
-	const v = float64(1.0)
-	nodes := graph.Nodes{}
-
-	for fromId, toIds := range links {
-		nodes[fromId] = v
-		for _, id := range toIds {
-			nodes[id] = v
-		}
-	}
-	return nodes
 }
 
 // リンク、ノードから隣接行列に変換する

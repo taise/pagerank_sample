@@ -24,6 +24,19 @@ func (self Links) Print() {
 	}
 }
 
+func (self Links) ToNodes() Nodes {
+	const v = float64(1.0)
+	nodes := Nodes{}
+
+	for fromId, toIds := range self {
+		nodes[fromId] = v
+		for _, id := range toIds {
+			nodes[id] = v
+		}
+	}
+	return nodes
+}
+
 func shuffle(a []int) {
 	for i := range a {
 		j := rand.Intn(i + 1)
@@ -43,7 +56,7 @@ func GenerateLinks(linkSize int) Links {
 		}
 		shuffle(linkIds)
 
-		outSize := rand.Intn(50)
+		outSize := rand.Intn(linkSize / 10)
 		for j := 0; j < outSize; j++ {
 			out = append(out, linkIds[j])
 		}
