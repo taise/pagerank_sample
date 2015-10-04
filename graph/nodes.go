@@ -17,3 +17,16 @@ func (self Nodes) Print() {
 		fmt.Println("id: ", id, ",rank: ", rank)
 	}
 }
+
+func (self Nodes) SplitByNodeIds(d int) []Nodes {
+	nodeSlice := []Nodes{}
+	for i := 0; i < d; i++ {
+		nodeSlice = append(nodeSlice, Nodes{})
+	}
+
+	for k, v := range self {
+		fmt.Printf("i: %v, k: %v, v: %v\n", k%d, k, v)
+		nodeSlice[k%d][k] = v
+	}
+	return nodeSlice
+}
