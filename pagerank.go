@@ -41,12 +41,7 @@ import (
  *
  */
 
-type AdjacencyList map[int]map[int]float64
-
 func main() {
-	// rankの初期値
-	const v = float64(1.0)
-
 	links := graph.GenerateLinks(20)
 	links.Print()
 
@@ -71,21 +66,6 @@ func Round(f float64) float64 {
 	return math.Floor(f*shift+.5) / shift
 }
 
-// リンク、ノードから隣接行列に変換する
-func toMatrix(links graph.Links, nodes graph.Nodes) AdjacencyList {
-	matrix := AdjacencyList{}
-
-	// nodeIdの隣接行列を0で埋める
-	for i, _ := range nodes {
-		tmpMap := map[int]float64{}
-		for j, _ := range nodes {
-			tmpMap[j] = 0
-		}
-		matrix[i] = tmpMap
-	}
-	return matrix
-}
-
 /*
  * 遷移確率の隣接行列S
  *   リンクがないノードjへの遷移確率は0とする
@@ -106,8 +86,8 @@ func toMatrix(links graph.Links, nodes graph.Nodes) AdjacencyList {
  * |5 |  0|  0|  0|  0|  0|  1|
  * |6 |  0|  0|  0|  0|  1|  0|
  */
-func probabilityAdjacencyList(links graph.Links, nodes graph.Nodes) AdjacencyList {
-	matrix := toMatrix(links, nodes)
+func probabilityAdjacencyList(links graph.Links, nodes graph.Nodes) graph.AdjacencyList {
+	matrix := graph.BuildAdjacencyList(links, nodes)
 
 	for row, link := range links {
 		ni := float64(len(link))
@@ -138,11 +118,11 @@ func probabilityAdjacencyList(links graph.Links, nodes graph.Nodes) AdjacencyLis
  * |5 | 1/60| 1/60| 1/60| 1/60| 1/60|55/60|
  * |6 | 1/60| 1/60| 1/60| 1/60|55/60| 1/60|
  */
-func meyersAdjacencyList(links graph.Links, nodes graph.Nodes) AdjacencyList {
+func meyersAdjacencyList(links graph.Links, nodes graph.Nodes) graph.AdjacencyList {
 	const d = float64(0.85)
 
 	S := probabilityAdjacencyList(links, nodes)
-	G := toMatrix(links, nodes)
+	G := graph.BuildAdjacencyList(links, nodes)
 	n := float64(len(G))
 
 	for i, cols := range S {
@@ -155,7 +135,7 @@ func meyersAdjacencyList(links graph.Links, nodes graph.Nodes) AdjacencyList {
 }
 
 // ノードからノードへ遷移確率pの分のrankをそれぞれ配分する
-func updateRank(nodes graph.Nodes, G AdjacencyList) graph.Nodes {
+func updateRank(nodes graph.Nodes, G graph.AdjacencyList) graph.Nodes {
 	nextNodes := nodes.CopyKey()
 
 	for i, rank := range nodes {
