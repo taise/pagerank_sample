@@ -37,6 +37,13 @@ func (self Links) ToNodes() Nodes {
 	return nodes
 }
 
+func (self Links) IsDanglingNode(fromId int) bool {
+	if len(self[fromId]) == 0 {
+		return true
+	}
+	return false
+}
+
 func shuffle(a []int) {
 	for i := range a {
 		j := rand.Intn(i + 1)
@@ -56,7 +63,7 @@ func GenerateLinks(linkSize int) Links {
 		}
 		shuffle(linkIds)
 
-		outSize := rand.Intn(linkSize / 10)
+		outSize := rand.Intn(linkSize/10) + 1
 		for j := 0; j < outSize; j++ {
 			out = append(out, linkIds[j])
 		}
